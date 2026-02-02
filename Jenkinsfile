@@ -7,11 +7,11 @@ pipeline {
 
     stages {
 
-        stage('Clone Repo') {
-            steps {
-                git 'https://github.com/vneethshetty/devsecops-docker-demo.git'
-            }
-        }
+       stage('Clone Repo') {
+    steps {
+        git branch: 'main', url: 'https://github.com/vneethshetty/devsecops-docker-demo.git'
+    }
+}
 
         stage('Build Docker Image') {
             steps {
