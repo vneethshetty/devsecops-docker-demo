@@ -9,7 +9,7 @@ pipeline {
 
         stage('Clone Repo') {
             steps {
-                git branch: 'main', url: 'https://github.com/vneethshetty/devsecops-docker-demo.git'
+                git 'https://github.com/vneethshetty/devsecops-docker-demo.git'
             }
         }
 
@@ -21,17 +21,27 @@ pipeline {
 
         stage('Trivy Image Scan') {
             steps {
-                sh 'docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image devsecops-demo'
+                sh 'trivy image --exit-code 0 devsecops-demo'
             }
         }
 
         stage('SonarQube Scan') {
             steps {
                 sh '''
-                docker run --rm \
-                -e SONAR_HOST_URL=http://host.docker.internal:9000 \
-                -e SONAR_LOGIN=$SONAR_TOKEN \
-                -v $(pwd):/usr/src sonarsource/sonar-scanner-cli
+                sonar-scanner \
+                -Dsonar.projectKey=devsecops-demo \
+                -Dsonar.sources=. \
+                -Dsonar.host.url=http://sonarqube:9000 \
+                -Dsonar.login=$SONAR_TOKEN
+                '''
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                sh '''
+                kubectl apply -f deployment.yaml
+                kubectl apply -f service.yaml
                 '''
             }
         }
